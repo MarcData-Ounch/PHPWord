@@ -14,6 +14,7 @@
  * @see         https://github.com/PHPOffice/PHPWord
  *
  * @license     http://www.gnu.org/licenses/lgpl.txt LGPL version 3
+ * from KF
  */
 
 namespace PhpOffice\PhpWord;
@@ -896,6 +897,7 @@ class TemplateProcessor
      *
      * @return null|string
      */
+/*    
     public function cloneBlock($blockname, $clones = 1, $replace = true, $indexVariables = false, $variableReplacements = null)
     {
         $xmlBlock = null;
@@ -904,12 +906,15 @@ class TemplateProcessor
         $escapedMacroClosingChars = self::$macroClosingChars;
         preg_match(
             //'/(.*((?s)<w:p\b(?:(?!<w:p\b).)*?\{{' . $blockname . '}<\/w:.*?p>))(.*)((?s)<w:p\b(?:(?!<w:p\b).)[^$]*?\{{\/' . $blockname . '}<\/w:.*?p>)/is',
-            '/(.*((?s)<w:p\b(?:(?!<w:p\b).)*?\\' . $escapedMacroOpeningChars . $blockname . $escapedMacroClosingChars . '<\/w:.*?p>))(.*)((?s)<w:p\b(?:(?!<w:p\b).)[^$]*?\\' . $escapedMacroOpeningChars . '\/' . $blockname . $escapedMacroClosingChars . '<\/w:.*?p>)/is',
+            //this '/(.*((?s)<w:p\b(?:(?!<w:p\b).)*?\\' . $escapedMacroOpeningChars . $blockname . $escapedMacroClosingChars . '<\/w:.*?p>))(.*)((?s)<w:p\b(?:(?!<w:p\b).)[^$]*?\\' . $escapedMacroOpeningChars . '\/' . $blockname . $escapedMacroClosingChars . '<\/w:.*?p>)/is',            
             //'/(.*((?s)<w:p\b(?:(?!<w:p\b).)*?\\'. $escapedMacroOpeningChars . $blockname . '}<\/w:.*?p>))(.*)((?s)<w:p\b(?:(?!<w:p\b).)[^$]*?\\'.$escapedMacroOpeningChars.'\/' . $blockname . '}<\/w:.*?p>)/is',
+            '/(\${' . $blockname . '})(.*?)(\${\/' . $blockname . '})/is',
             $this->tempDocumentMainPart,
             $matches
         );
-
+        //print($this->tempDocumentMainPart);
+        print_r($matches[3]);
+        exit;
         if (isset($matches[3])) {
             $xmlBlock = $matches[3];
             if ($indexVariables) {
@@ -926,6 +931,41 @@ class TemplateProcessor
             if ($replace) {
                 $this->tempDocumentMainPart = str_replace(
                     $matches[2] . $matches[3] . $matches[4],
+                    implode('', $cloned),
+                    $this->tempDocumentMainPart
+                );
+            }
+        }
+
+        return $xmlBlock;
+    }
+*/
+    public function cloneBlock($blockname, $clones = 1, $replace = true, $indexVariables = false, $variableReplacements = null)
+    {
+        $xmlBlock = null;
+        $matches = array();
+        preg_match(
+            '/(\${' . $blockname . '})(.*?)(\${\/' . $blockname . '})/is',
+            $this->tempDocumentMainPart,
+            $matches
+        );
+
+        if (isset($matches[3])) {
+            $xmlBlock = $matches[2];
+            if ($indexVariables) {
+                $cloned = $this->indexClonedVariables($clones, $xmlBlock);
+            } elseif ($variableReplacements !== null && is_array($variableReplacements)) {
+                $cloned = $this->replaceClonedVariables($variableReplacements, $xmlBlock);
+            } else {
+                $cloned = array();
+                for ($i = 1; $i <= $clones; $i++) {
+                    $cloned[] = $xmlBlock;
+                }
+            }
+
+            if ($replace) {
+                $this->tempDocumentMainPart = str_replace(
+                    $matches[1] . $matches[2] . $matches[3],
                     implode('', $cloned),
                     $this->tempDocumentMainPart
                 );
